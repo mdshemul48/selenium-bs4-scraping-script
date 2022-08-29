@@ -12,17 +12,15 @@ getSiteLink = lambda path: SITE_LINK + path
 
 class Scraper:
     web: webdriver.Chrome = None
-    resellerName: str = None
 
-    def __init__(self, resellerName: str) -> None:
-        self.resellerName = resellerName
+    def __init__(self) -> None:
 
         options = webdriver.ChromeOptions()
         options.add_experimental_option("debuggerAddress", "localhost:9222")
         service = Service(ChromeDriverManager().install())
         self.web = webdriver.Chrome(service=service, options=options)
 
-    def __login(self):
+    def login(self):
         self.web.get(getSiteLink("/auth/login"))
         emailInputBox = self.web.find_element(
             By.XPATH,
@@ -40,25 +38,31 @@ class Scraper:
         passwordInputBox.send_keys(SITE_PASSWORD)
         loginButton.click()
 
-    def __getPage(self, path):
+    def getPage(self, path):
         self.web.get(getSiteLink(path))
         try:
             loginButtonAddress = (
                 '//*[@id="container"]/div/div/div/div/div[2]/form/div[4]/div/button'
             )
             self.web.find_element(By.XPATH, loginButtonAddress)
-            self.__login()
+            self.login()
             self.web.get(getSiteLink(path))
         except:
             pass
 
-    def __getHtmlBs4(self, htmlSource=None):
+    def getHtmlBs4(self, htmlSource=None):
         if not htmlSource:
             htmlSource = self.web.page_source
         return bs4(htmlSource, "html.parser")
 
+
+class ScraperSingle(Scraper):
+    def __init__(self, resellerName: str) -> None:
+        super().__init__()
+        self.resellerName = resellerName
+
     def getResellerInfo(self):
-        self.__getPage("/reseller")
+        self.getPage("/reseller")
         self.web.find_element(
             By.XPATH, '//*[@id="datatbl_filter"]/label/input'
         ).send_keys(self.resellerName)
@@ -90,7 +94,7 @@ class Scraper:
         }
 
     def getResellerPop(self):
-        self.__getPage("/pop")
+        self.getPage("/pop")
         self.web.find_element(
             By.XPATH, '//*[@id="datatbl_filter"]/label/input'
         ).send_keys(self.resellerName)
@@ -101,7 +105,7 @@ class Scraper:
             By.XPATH, '//*[@id="datatbl"]/tbody'
         ).get_attribute("innerHTML")
 
-        bs4 = self.__getHtmlBs4(elementHtml)
+        bs4 = self.getHtmlBs4(elementHtml)
         pops = bs4.find_all("tr")
 
         AllThePop = []
@@ -111,8 +115,11 @@ class Scraper:
             # pop info
 
 
+# class SuperScrapper:
+
+
 if __name__ == "__main__":
-    w = Scraper("CN-BARISHAL")
+    w = ScraperSingle("CN-BARISHAL")
     # print(w.getResellerInfo())
     print(w.getResellerPop())
     print(w)
