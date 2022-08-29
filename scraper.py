@@ -1,9 +1,9 @@
 from selenium import webdriver
-import time
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs4
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from time import sleep
 
 from envInfo import SITE_EMAIL, SITE_LINK, SITE_PASSWORD
 
@@ -52,9 +52,10 @@ class Scraper:
         except:
             pass
 
-    def __getPageHtml(self):
-        pageHtml = self.web.page_source
-        return BeautifulSoup(pageHtml, "html.parser")
+    def __getHtmlBs4(self, htmlSource=None):
+        if not htmlSource:
+            htmlSource = self.web.page_source
+        return bs4(htmlSource, "html.parser")
 
     def getResellerInfo(self):
         self.__getPage("/reseller")
@@ -88,8 +89,30 @@ class Scraper:
             "phone": phone,
         }
 
+    def getResellerPop(self):
+        self.__getPage("/pop")
+        self.web.find_element(
+            By.XPATH, '//*[@id="datatbl_filter"]/label/input'
+        ).send_keys(self.resellerName)
+
+        sleep(4)
+
+        elementHtml = self.web.find_element(
+            By.XPATH, '//*[@id="datatbl"]/tbody'
+        ).get_attribute("innerHTML")
+
+        bs4 = self.__getHtmlBs4(elementHtml)
+        pops = bs4.find_all("tr")
+
+        AllThePop = []
+        for pop in pops:
+            popId = str(pop.find_all("td")[0].renderContents())
+            print(popId)
+            # pop info
+
 
 if __name__ == "__main__":
     w = Scraper("CN-BARISHAL")
-    print(w.getResellerInfo())
+    # print(w.getResellerInfo())
+    print(w.getResellerPop())
     print(w)
