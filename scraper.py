@@ -1,3 +1,4 @@
+from multiprocessing import pool
 from selenium import webdriver
 from bs4 import BeautifulSoup as bs4
 from webdriver_manager.chrome import ChromeDriverManager
@@ -5,6 +6,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 from time import sleep
+import json
 
 from envInfo import SITE_EMAIL, SITE_LINK, SITE_PASSWORD
 
@@ -143,17 +145,29 @@ class SuperScrapper(Scraper):
         resellersInfo = []
 
         for reseller in dataOfResellersInBs4.find_all('tr'):
+            # reseller info
             resellerRow = [singleResellerInfo.text.strip() for singleResellerInfo in reseller.find_all("td")]
             resellerId, resellerName, resellerAddress, resellerContact, resellerRemarks, resellerBalance, *_ = resellerRow
 
             # getting reseller package
-            hasPackage = []
             self.getPage(f"/package-permission/{resellerId}")
             sleep(2)
 
             packageTable = self.getHtmlBs4(self.web.find_element(
                 By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
-            print(packageTable)
+
+            hasPackage = []
+            for package in packageTable.find_all("tr"):
+                if package.find("input").has_key("checked"):
+                    _, packageId, packageName, packageRate, poolName, *_ = [
+                        packageRow.text.strip() for packageRow in package.find_all("td")]
+
+                    hasPackage.append({
+                        "id": packageId,
+                        "name": packageName,
+                        "price": packageRate,
+                        "poolName": poolName
+                    })
 
             resellersInfo.append({
                 "id": resellerId,
@@ -161,8 +175,10 @@ class SuperScrapper(Scraper):
                 "address": resellerAddress,
                 "contact": resellerContact,
                 "remarks": resellerRemarks,
-                "balance": resellerBalance
+                "balance": resellerBalance,
+                "hasPackage": hasPackage
             })
+
             break
 
         return resellersInfo
@@ -172,4 +188,4 @@ if __name__ == "__main__":
     w = SuperScrapper()
     # print(w.getAllTheMikroTik())
     print()
-    print(w.getAllTheReseller())
+    print(json.dumps(w.getAllTheReseller(), indent=2))
