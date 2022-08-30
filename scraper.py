@@ -251,7 +251,31 @@ class SuperScrapper(Scraper):
 
         return allPackage
 
+    def getAllTheSubPackage(self):
+        self.getPage("/sub-package")
+        Select(self.web.find_element(By.XPATH, '//*[@id="datatbl_length"]/label/select')).select_by_visible_text("All")
+
+        sleep(5)
+
+        tableOfSubPackage = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+        dataOfSubPackages = self.getHtmlBs4(tableOfSubPackage)
+
+        allTheSubPackage = []
+        for package in dataOfSubPackages.find_all("tr"):
+            packageId, packageName, packageRate, motherPackage, motherPackagePrice, * \
+                _ = [pack.text.strip() for pack in package.find_all("td")]
+
+            allTheSubPackage.append({
+                "id": packageId,
+                "name": packageName,
+                "price": packageRate,
+                "motherPackage": motherPackage,
+                "motherPackagePrice": motherPackagePrice,
+            })
+
+        return allTheSubPackage
+
 
 if __name__ == "__main__":
     w = SuperScrapper()
-    print(json.dumps(w.getAllThePackage(), indent=2))
+    print(json.dumps(w.getAllTheSubPackage(), indent=2))
