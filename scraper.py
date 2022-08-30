@@ -1,13 +1,16 @@
+import secrets
 from selenium import webdriver
 from bs4 import BeautifulSoup as bs4
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 from time import sleep
 
 from envInfo import SITE_EMAIL, SITE_LINK, SITE_PASSWORD
 
-getSiteLink = lambda path: SITE_LINK + path
+
+def getSiteLink(path): return SITE_LINK + path
 
 
 class Scraper:
@@ -95,15 +98,11 @@ class ScraperSingle(Scraper):
 
     def getResellerPop(self):
         self.getPage("/pop")
-        self.web.find_element(
-            By.XPATH, '//*[@id="datatbl_filter"]/label/input'
-        ).send_keys(self.resellerName)
+        self.web.find_element(By.XPATH, '//*[@id="datatbl_filter"]/label/input').send_keys(self.resellerName)
 
         sleep(4)
 
-        elementHtml = self.web.find_element(
-            By.XPATH, '//*[@id="datatbl"]/tbody'
-        ).get_attribute("innerHTML")
+        elementHtml = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
 
         bs4 = self.getHtmlBs4(elementHtml)
         pops = bs4.find_all("tr")
@@ -115,11 +114,40 @@ class ScraperSingle(Scraper):
             # pop info
 
 
-# class SuperScrapper:
+class SuperScrapper(Scraper):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def getAllTheMikroTik(self):
+        self.getPage("/mikrotik")
+
+        Select(self.web.find_element(By.XPATH, '//*[@id="datatbl_length"]/label/select')).select_by_visible_text("All")
+
+        sleep(5)
+
+        dataTable = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+
+        dataOfMKs = self.getHtmlBs4(dataTable)
+
+        allMKInfo = []
+
+        for mk in dataOfMKs.find_all('tr'):
+            mkRow = [singleMkInfo.text.strip() for singleMkInfo in mk.find_all("td")]
+            mkId, mkIp, mkSecret, mkName, mkType, mkDescription, *_ = mkRow
+
+            allMKInfo.append({
+                "id": mkId,
+                "name": mkName,
+                "ip": mkIp,
+                "secret": mkSecret,
+                "type": mkType,
+                "description": mkDescription
+            })
+
+        return allMKInfo
 
 
 if __name__ == "__main__":
-    w = ScraperSingle("CN-BARISHAL")
-    # print(w.getResellerInfo())
-    print(w.getResellerPop())
+    w = SuperScrapper()
+    print(w.getAllTheMikroTik())
     print(w)
