@@ -57,7 +57,7 @@ class Scraper:
         return bs4(htmlSource, "html.parser")
 
 
-class ScraperSingle(Scraper):
+class Reseller(Scraper):
     def __init__(self, resellerName: str) -> None:
         super().__init__()
         self.resellerName = resellerName
@@ -82,6 +82,10 @@ class ScraperSingle(Scraper):
             "comment": comment,
             "phone": phone,
         }
+
+    def getResellerAllClient(self):
+        self.getPage("/customer-search-report")
+        self.web.find_element(By.XPATH, '')
 
 
 class SuperScrapper(Scraper):
