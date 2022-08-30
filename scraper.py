@@ -83,23 +83,6 @@ class ScraperSingle(Scraper):
             "phone": phone,
         }
 
-    def getResellerPop(self):
-        self.getPage("/pop")
-        self.web.find_element(By.XPATH, '//*[@id="datatbl_filter"]/label/input').send_keys(self.resellerName)
-
-        sleep(4)
-
-        elementHtml = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
-
-        bs4 = self.getHtmlBs4(elementHtml)
-        pops = bs4.find_all("tr")
-
-        AllThePop = []
-        for pop in pops:
-            popId = str(pop.find_all("td")[0].renderContents())
-            print(popId)
-            # pop info
-
 
 class SuperScrapper(Scraper):
     def __init__(self) -> None:
