@@ -1,4 +1,3 @@
-from multiprocessing import pool
 from selenium import webdriver
 from bs4 import BeautifulSoup as bs4
 from webdriver_manager.chrome import ChromeDriverManager
@@ -230,9 +229,29 @@ class SuperScrapper(Scraper):
 
         return popsInfo
 
+    def getAllThePackage(self):
+        self.getPage("/package")
+        Select(self.web.find_element(By.XPATH, '//*[@id="datatbl_length"]/label/select')).select_by_visible_text("All")
+
+        sleep(5)
+
+        tableOfPackage = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+        dataOfPackages = self.getHtmlBs4(tableOfPackage)
+
+        allPackage = []
+        for package in dataOfPackages.find_all("tr"):
+            packageId, packageName, packageRate, packagePool, *_ = [pack.text.strip()
+                                                                    for pack in package.find_all("td")]
+            allPackage.append({
+                "name": packageId,
+                "name": packageName,
+                "price": packageRate,
+                "poolName": packagePool
+            })
+
+        return allPackage
+
 
 if __name__ == "__main__":
     w = SuperScrapper()
-    # print(w.getAllTheMikroTik())
-    print()
-    print(json.dumps(w.getAllThePop(), indent=2))
+    print(json.dumps(w.getAllThePackage(), indent=2))
