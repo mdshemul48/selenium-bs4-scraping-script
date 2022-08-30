@@ -1,4 +1,3 @@
-import secrets
 from selenium import webdriver
 from bs4 import BeautifulSoup as bs4
 from webdriver_manager.chrome import ChromeDriverManager
@@ -44,9 +43,7 @@ class Scraper:
     def getPage(self, path):
         self.web.get(getSiteLink(path))
         try:
-            loginButtonAddress = (
-                '//*[@id="container"]/div/div/div/div/div[2]/form/div[4]/div/button'
-            )
+            loginButtonAddress = '//*[@id="container"]/div/div/div/div/div[2]/form/div[4]/div/button'
             self.web.find_element(By.XPATH, loginButtonAddress)
             self.login()
             self.web.get(getSiteLink(path))
@@ -66,28 +63,17 @@ class ScraperSingle(Scraper):
 
     def getResellerInfo(self):
         self.getPage("/reseller")
-        self.web.find_element(
-            By.XPATH, '//*[@id="datatbl_filter"]/label/input'
-        ).send_keys(self.resellerName)
-        self.web.find_element(
-            By.XPATH, '//*[@id="datatbl"]/tbody/tr/td[9]/a[2]'
-        ).click()
+        self.web.find_element(By.XPATH, '//*[@id="datatbl_filter"]/label/input').send_keys(self.resellerName)
 
-        resellerName = self.web.find_element(
-            By.XPATH, '//*[@id="resellername"]'
-        ).get_attribute("value")
+        self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody/tr/td[9]/a[2]').click()
 
-        address = self.web.find_element(
-            By.XPATH, '//*[@id="reselleraddress"]'
-        ).get_attribute("value")
+        resellerName = self.web.find_element(By.XPATH, '//*[@id="resellername"]').get_attribute("value")
 
-        comment = self.web.find_element(
-            By.XPATH, '//*[@id="resellerremarks"]'
-        ).get_attribute("value")
+        address = self.web.find_element(By.XPATH, '//*[@id="reselleraddress"]').get_attribute("value")
 
-        phone = self.web.find_element(
-            By.XPATH, '//*[@id="resellercontact"]'
-        ).get_attribute("value")
+        comment = self.web.find_element(By.XPATH, '//*[@id="resellerremarks"]').get_attribute("value")
+
+        phone = self.web.find_element(By.XPATH, '//*[@id="resellercontact"]').get_attribute("value")
 
         return {
             "name": resellerName,
@@ -126,7 +112,6 @@ class SuperScrapper(Scraper):
         sleep(5)
 
         dataTable = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
-
         dataOfMKs = self.getHtmlBs4(dataTable)
 
         allMKInfo = []
@@ -146,8 +131,45 @@ class SuperScrapper(Scraper):
 
         return allMKInfo
 
+    def getAllTheReseller(self):
+        self.getPage("/reseller")
+
+        Select(self.web.find_element(By.XPATH, '//*[@id="datatbl_length"]/label/select')).select_by_visible_text("All")
+
+        sleep(5)
+        dataOfResellers = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+        dataOfResellersInBs4 = self.getHtmlBs4(dataOfResellers)
+
+        resellersInfo = []
+
+        for reseller in dataOfResellersInBs4.find_all('tr'):
+            resellerRow = [singleResellerInfo.text.strip() for singleResellerInfo in reseller.find_all("td")]
+            resellerId, resellerName, resellerAddress, resellerContact, resellerRemarks, resellerBalance, *_ = resellerRow
+
+            # getting reseller package
+            hasPackage = []
+            self.getPage(f"/package-permission/{resellerId}")
+            sleep(2)
+
+            packageTable = self.getHtmlBs4(self.web.find_element(
+                By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
+            print(packageTable)
+
+            resellersInfo.append({
+                "id": resellerId,
+                "name": resellerName,
+                "address": resellerAddress,
+                "contact": resellerContact,
+                "remarks": resellerRemarks,
+                "balance": resellerBalance
+            })
+            break
+
+        return resellersInfo
+
 
 if __name__ == "__main__":
     w = SuperScrapper()
-    print(w.getAllTheMikroTik())
-    print(w)
+    # print(w.getAllTheMikroTik())
+    print()
+    print(w.getAllTheReseller())
