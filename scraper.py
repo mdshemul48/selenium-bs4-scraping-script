@@ -179,13 +179,60 @@ class SuperScrapper(Scraper):
                 "hasPackage": hasPackage
             })
 
-            break
-
         return resellersInfo
+
+    def getAllThePop(self):
+        self.getPage("/pop")
+        Select(self.web.find_element(By.XPATH, '//*[@id="datatbl_length"]/label/select')).select_by_visible_text("All")
+
+        sleep(5)
+
+        dataOfPops = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+        dataOfPopsInBs4 = self.getHtmlBs4(dataOfPops)
+
+        popsInfo = []
+
+        for pop in dataOfPopsInBs4.find_all('tr'):
+            # pop info
+            popRow = [singlePop.text.strip() for singlePop in pop.find_all("td")]
+            popId, popName, resellerName, popLocation, mkIP, _, _, _, popContact, popStatus, _, popBalance, *_ = popRow
+
+            # getting pop package
+            self.getPage(f"/sub-package-permission/{popId}")
+            sleep(2)
+
+            packageTable = self.getHtmlBs4(self.web.find_element(
+                By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
+
+            hasSubPackage = []
+            for package in packageTable.find_all("tr"):
+                if package.find("input").has_key("checked"):
+                    _, packageId, packageName, packageRate, *_ = [
+                        packageRow.text.strip() for packageRow in package.find_all("td")]
+
+                    hasSubPackage.append({
+                        "id": packageId,
+                        "name": packageName,
+                        "price": packageRate,
+                    })
+
+            popsInfo.append({
+                "id": popId,
+                "name": popName,
+                "reseller": resellerName,
+                "location": popLocation,
+                "mkIp": mkIP,
+                "contact": popContact,
+                "status": popStatus,
+                "balance": popBalance,
+                "hasSubPackage": hasSubPackage
+            })
+
+        return popsInfo
 
 
 if __name__ == "__main__":
     w = SuperScrapper()
     # print(w.getAllTheMikroTik())
     print()
-    print(json.dumps(w.getAllTheReseller(), indent=2))
+    print(json.dumps(w.getAllThePop(), indent=2))
