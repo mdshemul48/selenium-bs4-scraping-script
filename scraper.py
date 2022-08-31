@@ -89,7 +89,7 @@ class Reseller(Scraper):
 
         self.web.find_element(By.XPATH, '//*[@id="btnSearch"]').click()
 
-        sleep(8)
+        sleep(5)
         tableOfClients = self.web.find_element(
             By.XPATH, '//*[@id="search-result"]/div/div/div[2]/table/tbody').get_attribute("innerHTML")
 
@@ -182,7 +182,7 @@ class SuperScrapper(Scraper):
 
             # getting reseller package
             self.getPage(f"/package-permission/{resellerId}")
-            sleep(2)
+            # sleep(2)
 
             packageTable = self.getHtmlBs4(self.web.find_element(
                 By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
@@ -230,7 +230,7 @@ class SuperScrapper(Scraper):
 
             # getting pop package
             self.getPage(f"/sub-package-permission/{popId}")
-            sleep(2)
+            # sleep(2)
 
             packageTable = self.getHtmlBs4(self.web.find_element(
                 By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     allMk.close()
     print("done")
 
-    allTheReseller = open("dist/allMikroTik.json", "w")
+    allTheReseller = open("dist/allTheReseller.json", "w")
     allTheReseller.write(json.dumps(superScraper.getAllTheReseller(), indent=2))
     allTheReseller.close()
 
