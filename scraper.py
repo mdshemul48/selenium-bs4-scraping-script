@@ -309,5 +309,40 @@ class SuperScrapper(Scraper):
 
 
 if __name__ == "__main__":
+    superScraper = SuperScrapper()
+
+    allMk = open("dist/allMikroTik.json", "w")
+    allMk.write(json.dumps(superScraper.getAllTheMikroTik(), indent=2))
+    allMk.close()
+    print("done")
+
+    allTheReseller = open("dist/allMikroTik.json", "w")
+    allTheReseller.write(json.dumps(superScraper.getAllTheReseller(), indent=2))
+    allTheReseller.close()
+
+    print("done")
+
+    allThePop = open("dist/allThePop.json", "w")
+    allThePop.write(json.dumps(superScraper.getAllThePop(), indent=2))
+    allThePop.close()
+
+    print("done")
+
+    allTHePackage = open("dist/allThePackage.json", "w")
+    allTHePackage.write(json.dumps(superScraper.getAllThePackage(), indent=2))
+    allTHePackage.close()
+
+    print("done")
+
+    allTheSubPackage = open("dist/allTheSubPackage", 'w')
+    allTheSubPackage.write(json.dumps(superScraper.getAllThePackage(), indent=2))
+    allTheSubPackage.close()
+
+    print("done")
+
     w = Reseller("ASKONA")
-    print(json.dumps(w.getResellerAllClient(), indent=2))
+    resellerClients = open("dist/allTheClient.json", "w")
+    resellerClients.write(json.dumps(w.getResellerAllClient(), indent=2))
+    resellerClients.close()
+
+    print("done")
