@@ -85,7 +85,52 @@ class Reseller(Scraper):
 
     def getResellerAllClient(self):
         self.getPage("/customer-search-report")
-        self.web.find_element(By.XPATH, '')
+        Select(self.web.find_element(By.XPATH, '//*[@id="reseller_id"]')).select_by_visible_text(self.resellerName)
+
+        self.web.find_element(By.XPATH, '//*[@id="btnSearch"]').click()
+
+        sleep(8)
+        tableOfClients = self.web.find_element(
+            By.XPATH, '//*[@id="search-result"]/div/div/div[2]/table/tbody').get_attribute("innerHTML")
+
+        allClientRows = self.getHtmlBs4(tableOfClients)
+        allTheResellerClient = []
+        for clientRow in allClientRows.find_all("tr"):
+            if clientRow.has_key("align"):
+                continue
+            user_detail = clientRow.find_all("td")
+            user_id: str = user_detail[1].getText()
+
+            self.getPage(f"/mac-customer/{user_id}")
+
+            table_element = self.web.find_elements(
+                By.XPATH, '//*[@id="container"]/div/div/div/div/div[2]/table'
+            )[0]
+
+            table_html = table_element.get_attribute("innerHTML")
+            table_soup = self.getHtmlBs4(table_html)
+
+            allTheFiledOfClient = table_soup.find_all("tr")
+            user_data = {}
+            for filed in allTheFiledOfClient:
+                key = filed.find("th").getText()
+                value = filed.find("td").getText()
+                user_data[key] = value
+
+            address = user_data["Address"].split(",")
+            flat_no = address[0]
+            building = address[1]
+            road = address[2]
+            block = address[3]
+            user_data["Address"] = {
+                "flat_no": flat_no,
+                "building": building,
+                "road": road,
+                "block": block,
+            }
+            allTheResellerClient.append(user_data)
+
+        return allTheResellerClient
 
 
 class SuperScrapper(Scraper):
@@ -264,5 +309,5 @@ class SuperScrapper(Scraper):
 
 
 if __name__ == "__main__":
-    w = SuperScrapper()
-    print(json.dumps(w.getAllTheSubPackage(), indent=2))
+    w = Reseller("ASKONA")
+    print(json.dumps(w.getResellerAllClient(), indent=2))
