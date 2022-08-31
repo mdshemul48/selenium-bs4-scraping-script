@@ -28,7 +28,7 @@ class DB:
 
         self.db.commit()
         myCursor.close()
-        return myCursor.rowcount
+        return myCursor.lastrowid
 
 
 if __name__ == "__main__":
