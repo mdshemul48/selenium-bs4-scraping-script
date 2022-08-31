@@ -275,7 +275,7 @@ class SuperScrapper(Scraper):
             packageId, packageName, packageRate, packagePool, *_ = [pack.text.strip()
                                                                     for pack in package.find_all("td")]
             allPackage.append({
-                "name": packageId,
+                "id": packageId,
                 "name": packageName,
                 "price": packageRate,
                 "poolName": packagePool
@@ -334,8 +334,8 @@ if __name__ == "__main__":
 
     print("done")
 
-    allTheSubPackage = open("dist/allTheSubPackage", 'w')
-    allTheSubPackage.write(json.dumps(superScraper.getAllThePackage(), indent=2))
+    allTheSubPackage = open("dist/allTheSubPackage.json", 'w')
+    allTheSubPackage.write(json.dumps(superScraper.getAllTheSubPackage(), indent=2))
     allTheSubPackage.close()
 
     print("done")
