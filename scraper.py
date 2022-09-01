@@ -68,13 +68,13 @@ class Reseller(Scraper):
 
         self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody/tr/td[9]/a[2]').click()
 
-        resellerName = self.web.find_element(By.XPATH, '//*[@id="resellername"]').get_attribute("value")
+        resellerName = self.web.find_element(By.XPATH, '//*[@id="resellername"]').get_attribute("value").strip()
 
-        address = self.web.find_element(By.XPATH, '//*[@id="reselleraddress"]').get_attribute("value")
+        address = self.web.find_element(By.XPATH, '//*[@id="reselleraddress"]').get_attribute("value").strip()
 
-        comment = self.web.find_element(By.XPATH, '//*[@id="resellerremarks"]').get_attribute("value")
+        comment = self.web.find_element(By.XPATH, '//*[@id="resellerremarks"]').get_attribute("value").strip()
 
-        phone = self.web.find_element(By.XPATH, '//*[@id="resellercontact"]').get_attribute("value")
+        phone = self.web.find_element(By.XPATH, '//*[@id="resellercontact"]').get_attribute("value").strip()
 
         return {
             "name": resellerName,
@@ -113,15 +113,15 @@ class Reseller(Scraper):
             allTheFiledOfClient = table_soup.find_all("tr")
             user_data = {}
             for filed in allTheFiledOfClient:
-                key = filed.find("th").getText()
-                value = filed.find("td").getText()
+                key = filed.find("th").getText().strip()
+                value = filed.find("td").getText().strip()
                 user_data[key] = value
 
             address = user_data["Address"].split(",")
-            flat_no = address[0]
-            building = address[1]
-            road = address[2]
-            block = address[3]
+            flat_no = address[0].strip()
+            building = address[1].strip()
+            road = address[2].strip()
+            block = address[3].strip()
             user_data["Address"] = {
                 "flat_no": flat_no,
                 "building": building,
@@ -154,12 +154,12 @@ class SuperScraper(Scraper):
             mkId, mkIp, mkSecret, mkName, mkType, mkDescription, *_ = mkRow
 
             allMKInfo.append({
-                "id": mkId,
-                "name": mkName,
-                "ip": mkIp,
-                "secret": mkSecret,
-                "type": mkType,
-                "description": mkDescription
+                "id": mkId.strip(),
+                "name": mkName.strip(),
+                "ip": mkIp.strip(),
+                "secret": mkSecret.strip(),
+                "type": mkType.strip(),
+                "description": mkDescription.strip()
             })
 
         return allMKInfo
@@ -201,12 +201,12 @@ class SuperScraper(Scraper):
                     })
 
             resellersInfo.append({
-                "id": resellerId,
-                "name": resellerName,
-                "address": resellerAddress,
-                "contact": resellerContact,
-                "remarks": resellerRemarks,
-                "balance": resellerBalance,
+                "id": resellerId.strip(),
+                "name": resellerName.strip(),
+                "address": resellerAddress.strip(),
+                "contact": resellerContact.strip(),
+                "remarks": resellerRemarks.strip(),
+                "balance": resellerBalance.strip(),
                 "hasPackage": hasPackage
             })
 
@@ -248,14 +248,14 @@ class SuperScraper(Scraper):
                     })
 
             popsInfo.append({
-                "id": popId,
-                "name": popName,
-                "reseller": resellerName,
-                "location": popLocation,
-                "mkIp": mkIP,
-                "contact": popContact,
-                "status": popStatus,
-                "balance": popBalance,
+                "id": popId.strip(),
+                "name": popName.strip(),
+                "reseller": resellerName.strip(),
+                "location": popLocation.strip(),
+                "mkIp": mkIP.strip(),
+                "contact": popContact.strip(),
+                "status": popStatus.strip(),
+                "balance": popBalance.strip(),
                 "hasSubPackage": hasSubPackage
             })
 

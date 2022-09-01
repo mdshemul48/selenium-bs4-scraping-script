@@ -4,6 +4,8 @@ from scraper import SuperScraper, Reseller
 from Db import DB
 import json
 
+from util import find
+
 
 def scrapData():
     superScraper = SuperScraper()
@@ -37,12 +39,12 @@ def scrapData():
 
     print("done")
 
-    w = Reseller("ASKONA")
-    resellerClients = open("dist/allTheClient.json", "w")
-    resellerClients.write(json.dumps(w.getResellerAllClient(), indent=2))
-    resellerClients.close()
+    # w = Reseller("ASKONA")
+    # resellerClients = open("dist/allTheClient.json", "w")
+    # resellerClients.write(json.dumps(w.getResellerAllClient(), indent=2))
+    # resellerClients.close()
 
-    print("done")
+    # print("done")
 
 
 class Sam:
@@ -67,13 +69,82 @@ class Sam:
             })
             mikrotik["insertedId"] = insertedId
 
+        self.AllMikrotikInfo = AllMikrotikInfo
         return AllMikrotikInfo
+
+    def insertAllThePackage(self, fileLocation: str):
+        allPackageInfo = self.__getJsonData(fileLocation)
+
+        for package in allPackageInfo:
+            _, packageName, packagePrice, packagePoolName = package.values()
+            insertedId = self.db.table("packages").insert({
+                "package_name": packageName,
+                "package_rate": packagePrice,
+                "pool_name": packagePoolName
+            })
+            package["insertedId"] = insertedId
+
+        self.allPackageInfo = allPackageInfo
+        return allPackageInfo
 
 
 def main():
     # scrapData()
     sam = Sam()
-    print(sam.insertAllMkInfo("dist/allMikroTik.json"))
+    allMikrotik = sam.insertAllMkInfo("dist/allMikroTik.json")
+    allThePackages = sam.insertAllThePackage("dist/allThePackage.json")
+
+    resellers = json.loads(open("dist/allTheReseller.json", "r").read())
+    pops = json.loads(open("dist/allThePop.json", "r").read())
+    subPackages = json.loads(open("dist/allTheSubPackage.json", "r").read())
+
+    db = DB(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE)
+
+    for reseller in resellers:
+        resellerHasPackage = reseller['hasPackage']
+
+        # adding reseller
+        packageIds = ", ".join([str(find(allThePackages, "id", package["id"])["insertedId"])
+                                for package in resellerHasPackage])
+
+        resellerInsertedId = db.table("resellers").insert({
+            "name": reseller["name"],
+            "address": reseller["address"],
+            "contact": reseller["contact"],
+            "remark": reseller["remarks"],
+            "package_list": packageIds
+        })
+
+        # adding pops
+        resellerPops = list(filter(lambda pop: pop['reseller'] == reseller['name'], pops))
+        for pop in resellerPops:
+            hasSubPackage = pop['hasSubPackage']
+
+            # adding pop subPackage
+            subPackageIds = []
+            for subPackage in hasSubPackage:
+                subPackageWithMotherPackage = find(subPackages, "name", subPackage['name'])
+                motherPackage = find(allThePackages, "name", subPackageWithMotherPackage['motherPackage'])
+
+                subPackageInsertedId = db.table("sub_packages").insert({
+                    "reseller_id": resellerInsertedId,
+                    "package_id": motherPackage['insertedId'],
+                    "name": subPackage['name'],
+                    "rate": subPackage["price"]
+                })
+                subPackageWithMotherPackage["insertedId"] = subPackageInsertedId
+                subPackageIds.append(str(subPackageInsertedId))
+
+            subPackageIds = ", ".join(subPackageIds)
+            db.table("pops").insert({
+                "popname": pop["name"],
+                "reseller_id": resellerInsertedId,
+                "pop_location": pop["location"],
+                "pop_contact": pop["contact"],
+                "nas_id": find(allMikrotik, "ip", pop["mkIp"])['insertedId']
+            })
+
+    print(subPackages)
 
 
 if __name__ == "__main__":
