@@ -1,4 +1,5 @@
 import mysql.connector
+import atexit
 
 
 class DB:
@@ -9,6 +10,8 @@ class DB:
             password=password,
             database=database
         )
+
+        atexit.register(self.__cleanup)
 
     def table(self, tableName):
         self.tableName = tableName
@@ -30,9 +33,22 @@ class DB:
         myCursor.close()
         return myCursor.lastrowid
 
+    def __cleanup(self):
+        self.db.close()
+
 
 if __name__ == "__main__":
     db = DB("127.0.0.1", "root", "", "radius-circle")
+    print(db.table("nas").insert({
+        "nasname": "192.168.0.1",
+        "shortname": "thisIs",
+        "type": "others"
+    }))
+    print(db.table("nas").insert({
+        "nasname": "192.168.0.1",
+        "shortname": "thisIs",
+        "type": "others"
+    }))
     print(db.table("nas").insert({
         "nasname": "192.168.0.1",
         "shortname": "thisIs",

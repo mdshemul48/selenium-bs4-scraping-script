@@ -133,7 +133,7 @@ class Reseller(Scraper):
         return allTheResellerClient
 
 
-class SuperScrapper(Scraper):
+class SuperScraper(Scraper):
     def __init__(self) -> None:
         super().__init__()
 
@@ -309,7 +309,7 @@ class SuperScrapper(Scraper):
 
 
 if __name__ == "__main__":
-    superScraper = SuperScrapper()
+    superScraper = SuperScraper()
 
     allMk = open("dist/allMikroTik.json", "w")
     allMk.write(json.dumps(superScraper.getAllTheMikroTik(), indent=2))
