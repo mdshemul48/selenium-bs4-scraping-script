@@ -187,6 +187,7 @@ class SuperScraper(Scraper):
             packageTable = self.getHtmlBs4(self.web.find_element(
                 By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
 
+            # has packages
             hasPackage = []
             for package in packageTable.find_all("tr"):
                 if package.find("input").has_key("checked"):
@@ -200,6 +201,30 @@ class SuperScraper(Scraper):
                         "poolName": poolName
                     })
 
+            # has sub packages
+            self.getPage("/sub-package")
+
+            self.web.find_element(By.XPATH, '//*[@id="datatbl_filter"]/label/input').send_keys(resellerName)
+
+            tableOfSubPackage = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+            dataOfSubPackages = self.getHtmlBs4(tableOfSubPackage)
+
+            allTheSubPackageOfReseller = []
+            for package in dataOfSubPackages.find_all("tr"):
+                try:
+                    packageId, packageName, packageRate, motherPackage, motherPackagePrice, * \
+                        _ = [pack.text.strip() for pack in package.find_all("td")]
+
+                    allTheSubPackageOfReseller.append({
+                        "id": packageId,
+                        "name": packageName,
+                        "price": packageRate,
+                        "motherPackage": motherPackage,
+                        "motherPackagePrice": motherPackagePrice,
+                    })
+                except ValueError:
+                    pass
+
             resellersInfo.append({
                 "id": resellerId.strip(),
                 "name": resellerName.strip(),
@@ -207,7 +232,8 @@ class SuperScraper(Scraper):
                 "contact": resellerContact.strip(),
                 "remarks": resellerRemarks.strip(),
                 "balance": resellerBalance.strip(),
-                "hasPackage": hasPackage
+                "hasPackage": hasPackage,
+                "hasSubPackage": allTheSubPackageOfReseller
             })
 
         return resellersInfo
@@ -311,10 +337,10 @@ class SuperScraper(Scraper):
 if __name__ == "__main__":
     superScraper = SuperScraper()
 
-    allMk = open("dist/allMikroTik.json", "w")
-    allMk.write(json.dumps(superScraper.getAllTheMikroTik(), indent=2))
-    allMk.close()
-    print("done")
+    # allMk = open("dist/allMikroTik.json", "w")
+    # allMk.write(json.dumps(superScraper.getAllTheMikroTik(), indent=2))
+    # allMk.close()
+    # print("done")
 
     allTheReseller = open("dist/allTheReseller.json", "w")
     allTheReseller.write(json.dumps(superScraper.getAllTheReseller(), indent=2))
@@ -322,27 +348,27 @@ if __name__ == "__main__":
 
     print("done")
 
-    allThePop = open("dist/allThePop.json", "w")
-    allThePop.write(json.dumps(superScraper.getAllThePop(), indent=2))
-    allThePop.close()
+    # allThePop = open("dist/allThePop.json", "w")
+    # allThePop.write(json.dumps(superScraper.getAllThePop(), indent=2))
+    # allThePop.close()
 
-    print("done")
+    # print("done")
 
-    allTHePackage = open("dist/allThePackage.json", "w")
-    allTHePackage.write(json.dumps(superScraper.getAllThePackage(), indent=2))
-    allTHePackage.close()
+    # allTHePackage = open("dist/allThePackage.json", "w")
+    # allTHePackage.write(json.dumps(superScraper.getAllThePackage(), indent=2))
+    # allTHePackage.close()
 
-    print("done")
+    # print("done")
 
-    allTheSubPackage = open("dist/allTheSubPackage.json", 'w')
-    allTheSubPackage.write(json.dumps(superScraper.getAllTheSubPackage(), indent=2))
-    allTheSubPackage.close()
+    # allTheSubPackage = open("dist/allTheSubPackage.json", 'w')
+    # allTheSubPackage.write(json.dumps(superScraper.getAllTheSubPackage(), indent=2))
+    # allTheSubPackage.close()
 
-    print("done")
+    # print("done")
 
-    w = Reseller("ASKONA")
-    resellerClients = open("dist/allTheClient.json", "w")
-    resellerClients.write(json.dumps(w.getResellerAllClient(), indent=2))
-    resellerClients.close()
+    # w = Reseller("ASKONA")
+    # resellerClients = open("dist/allTheClient.json", "w")
+    # resellerClients.write(json.dumps(w.getResellerAllClient(), indent=2))
+    # resellerClients.close()
 
-    print("done")
+    # print("done")
