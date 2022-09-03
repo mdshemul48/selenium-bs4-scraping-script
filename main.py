@@ -3,7 +3,7 @@ from envInfo import DB_DATABASE, DB_HOST, DB_PASSWORD, DB_USER
 from scraper import SuperScraper, Reseller
 from Db import DB
 import json
-
+import datetime
 from util import find
 
 
@@ -102,6 +102,7 @@ def main():
 
     for reseller in resellers:
         resellerHasPackage = reseller['hasPackage']
+        resellerHasSubPackage = reseller['hasSubPackage']
 
         # adding reseller
         packageIds = ", ".join([str(find(allThePackages, "id", package["id"])["insertedId"])
@@ -115,6 +116,19 @@ def main():
             "package_list": packageIds
         })
 
+        # adding reseller SubPackages
+        for subPackage in resellerHasSubPackage:
+            subPackageWithMotherPackage = find(subPackages, "name", subPackage['name'])
+            motherPackage = find(allThePackages, "name", subPackageWithMotherPackage['motherPackage'])
+
+            subPackageInsertedId = db.table("sub_packages").insert({
+                "reseller_id": resellerInsertedId,
+                "package_id": motherPackage['insertedId'],
+                "name": subPackage['name'],
+                "rate": subPackage["price"]
+            })
+            subPackageWithMotherPackage["insertedId"] = subPackageInsertedId
+
         # adding pops
         resellerPops = list(filter(lambda pop: pop['reseller'] == reseller['name'], pops))
         for pop in resellerPops:
@@ -124,27 +138,51 @@ def main():
             subPackageIds = []
             for subPackage in hasSubPackage:
                 subPackageWithMotherPackage = find(subPackages, "name", subPackage['name'])
-                motherPackage = find(allThePackages, "name", subPackageWithMotherPackage['motherPackage'])
-
-                subPackageInsertedId = db.table("sub_packages").insert({
-                    "reseller_id": resellerInsertedId,
-                    "package_id": motherPackage['insertedId'],
-                    "name": subPackage['name'],
-                    "rate": subPackage["price"]
-                })
-                subPackageWithMotherPackage["insertedId"] = subPackageInsertedId
-                subPackageIds.append(str(subPackageInsertedId))
+                subPackageIds.append(str(subPackageWithMotherPackage["insertedId"]))
 
             subPackageIds = ", ".join(subPackageIds)
-            db.table("pops").insert({
+            pop["insertedId"] = db.table("pops").insert({
                 "popname": pop["name"],
                 "reseller_id": resellerInsertedId,
                 "pop_location": pop["location"],
                 "pop_contact": pop["contact"],
-                "nas_id": find(allMikrotik, "ip", pop["mkIp"])['insertedId']
+                "nas_id": find(allMikrotik, "ip", pop["mkIp"])['insertedId'],
+                "sub_package_list": subPackageIds
             })
 
-    print(subPackages)
+        # insert all the Client
+        allTheClients = json.load(open("dist/{}.json".format(reseller["name"])))
+
+        for client in allTheClients:
+
+            status = "disable"
+            if client['Enable State'] == "Enable":
+                status = "active"
+
+            packageId = find(allThePackages, "id", client["Package"].split(" ")[0])['insertedId']
+
+            subResellerId = ""
+            if client["Sub Package"]:
+                subResellerId = find(subPackages, "id", client["Sub Package"])["insertedId"]
+
+            popId = str(find(pops, "id", client["POP"].split(" ")[0])["insertedId"])
+
+            db.table("clients").insert({
+                "pop_id": popId,
+                "billing_cycle": client["Billing Cycle"],
+                "package_id": packageId,
+                "userid": client['Customer Username'],
+                "password": client['Password'],
+                "created_by": 1,
+                "created_at": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "required_cable": client["Cable Meter"],
+                "clients_status": status,
+                "sub_package_id": subResellerId
+            })
+
+            break
+
+        break
 
 
 if __name__ == "__main__":
