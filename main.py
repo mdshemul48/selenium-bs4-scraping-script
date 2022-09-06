@@ -127,7 +127,6 @@ def main():
                 "name": subPackage['name'],
                 "rate": subPackage["price"]
             })
-            print(subPackageWithMotherPackage)
             subPackageWithMotherPackage["insertedId"] = subPackageInsertedId
 
         # adding pops
@@ -197,7 +196,6 @@ def main():
                 "road_name":  client["Address"]["road"],
                 "otc": "0"
             })
-        print("     ")
 
 
 if __name__ == "__main__":
