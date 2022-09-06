@@ -118,7 +118,7 @@ def main():
 
         # adding reseller SubPackages
         for subPackage in resellerHasSubPackage:
-            subPackageWithMotherPackage = find(subPackages, "name", subPackage['name'])
+            subPackageWithMotherPackage = find(subPackages, "id", subPackage['id'])
             motherPackage = find(allThePackages, "name", subPackageWithMotherPackage['motherPackage'])
 
             subPackageInsertedId = db.table("sub_packages").insert({
@@ -167,7 +167,7 @@ def main():
 
             popId = str(find(pops, "id", client["POP"].split(" ")[0])["insertedId"])
 
-            db.table("clients").insert({
+            clientInsertedId = db.table("clients").insert({
                 "pop_id": popId,
                 "billing_cycle": client["Billing Cycle"],
                 "package_id": packageId,
@@ -180,7 +180,21 @@ def main():
                 "sub_package_id": subResellerId
             })
 
-            break
+            db.table("clientsinfo").insert({
+                "client_id": clientInsertedId,
+                "clients_name": client["Customer Name"],
+                "father_name": client["Father's Name"],
+                "mother_name": client["Mother's Name"],
+                "flat_no": client["Address"]["flat_no"],
+                "building_name": client["Address"]["building"],
+                "block_sector": client["Address"]["block"],
+                "contact_no": client["Customer Phone"],
+                "national_id": client["National ID"],
+                "passport_no": client["Passport"],
+                "created_at": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "road_name":  client["Address"]["road"],
+                "otc": "0"
+            })
 
         break
 
