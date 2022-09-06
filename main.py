@@ -127,6 +127,7 @@ def main():
                 "name": subPackage['name'],
                 "rate": subPackage["price"]
             })
+            print(subPackageWithMotherPackage)
             subPackageWithMotherPackage["insertedId"] = subPackageInsertedId
 
         # adding pops
@@ -137,7 +138,8 @@ def main():
             # adding pop subPackage
             subPackageIds = []
             for subPackage in hasSubPackage:
-                subPackageWithMotherPackage = find(subPackages, "name", subPackage['name'])
+                subPackageWithMotherPackage = find(subPackages, "id", subPackage['id'])
+                print(subPackage, subPackageWithMotherPackage)
                 subPackageIds.append(str(subPackageWithMotherPackage["insertedId"]))
 
             subPackageIds = ", ".join(subPackageIds)
@@ -195,8 +197,7 @@ def main():
                 "road_name":  client["Address"]["road"],
                 "otc": "0"
             })
-
-        break
+        print("     ")
 
 
 if __name__ == "__main__":
