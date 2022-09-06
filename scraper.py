@@ -202,28 +202,31 @@ class SuperScraper(Scraper):
                     })
 
             # has sub packages
-            self.getPage("/sub-package")
-
+            self.getPage("/pop")
             self.web.find_element(By.XPATH, '//*[@id="datatbl_filter"]/label/input').send_keys(resellerName)
 
-            tableOfSubPackage = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
-            dataOfSubPackages = self.getHtmlBs4(tableOfSubPackage)
+            dataOfPops = self.web.find_element(By.XPATH, '//*[@id="datatbl"]/tbody').get_attribute("innerHTML")
+            dataOfPopsInBs4 = self.getHtmlBs4(dataOfPops)
 
             allTheSubPackageOfReseller = []
-            for package in dataOfSubPackages.find_all("tr"):
-                try:
-                    packageId, packageName, packageRate, motherPackage, motherPackagePrice, * \
-                        _ = [pack.text.strip() for pack in package.find_all("td")]
+            popsRow = dataOfPopsInBs4.find_all("tr")
+            if len(popsRow) > 0:
+                popId = popsRow[0].find_all('td')[0].text
+                self.getPage(f"/sub-package-permission/{popId}")
+                # sleep(2)
+
+                packageTable = self.getHtmlBs4(self.web.find_element(
+                    By.XPATH, '//*[@id="dtProduct"]/tbody').get_attribute("innerHTML"))
+
+                for package in packageTable.find_all("tr"):
+                    _, packageId, packageName, packageRate, *_ = [
+                        packageRow.text.strip() for packageRow in package.find_all("td")]
 
                     allTheSubPackageOfReseller.append({
                         "id": packageId,
                         "name": packageName,
                         "price": packageRate,
-                        "motherPackage": motherPackage,
-                        "motherPackagePrice": motherPackagePrice,
                     })
-                except ValueError:
-                    pass
 
             resellersInfo.append({
                 "id": resellerId.strip(),
